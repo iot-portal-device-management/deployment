@@ -1,0 +1,25 @@
+# Defaults
+ARG NGINX_VERSION=1.23.2-alpine
+
+FROM nginx:${NGINX_VERSION}
+
+COPY --from=api-builder /var/www/html/ /var/www/html/
+
+ARG API_UPSTREAM_CONTAINER=api
+ARG API_UPSTREAM_PORT=9000
+ARG WEB_UPSTREAM_CONTAINER=web
+ARG WEB_UPSTREAM_PORT=3000
+
+# Set upstream conf and remove the default conf
+RUN set -eux; \
+    echo "upstream api-upstream { server ${API_UPSTREAM_CONTAINER}:${API_UPSTREAM_PORT}; }" \
+    > /etc/nginx/conf.d/api-upstream.conf; \
+    echo "upstream web-upstream { server ${WEB_UPSTREAM_CONTAINER}:${WEB_UPSTREAM_PORT}; }" \
+    > /etc/nginx/conf.d/web-upstream.conf; \
+    rm /etc/nginx/conf.d/default.conf
+
+COPY ./compose/nginx/configs/nginx.conf /etc/nginx/
+
+COPY ./compose/nginx/configs/iotportaldevicemanagement.conf /etc/nginx/conf.d/
+
+# docker build -f compose/nginx/Dockerfile.production -t iotportaldevicemanagement-nginx .

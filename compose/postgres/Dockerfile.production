@@ -1,0 +1,6 @@
+# Defaults
+ARG POSTGRES_VERSION=15.0-alpine3.16
+
+FROM postgres:${POSTGRES_VERSION}
+
+# docker build -f compose/postgres/Dockerfile.production -t iotportaldevicemanagement-postgres .
