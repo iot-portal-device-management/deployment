@@ -11,12 +11,14 @@ services:
         max-size: "500k"
         max-file: "10"
     restart: always
-#    read_only: true
-#    depends_on:
-#      - ${DB_HOST}
-#      - ${MQTT_HOST}
-#      - ${REDIS_HOST}
+    read_only: true
+    #    depends_on:
+    #      - ${DB_HOST}
+    #      - ${MQTT_HOST}
+    #      - ${REDIS_HOST}
     environment:
+      - ROLE=api
+
       - APP_NAME=${APP_NAME}
       - APP_ENV=${APP_ENV}
       - APP_KEY=${APP_KEY}
@@ -24,6 +26,7 @@ services:
       - APP_HOST=${APP_HOST}
       - APP_URL=${APP_URL}
       - FRONTEND_URL=${FRONTEND_URL}
+      - SANCTUM_STATEFUL_DOMAINS=${SANCTUM_STATEFUL_DOMAINS}
 
       - LOG_CHANNEL=${LOG_CHANNEL}
       - LOG_DEPRECATIONS_CHANNEL=${LOG_DEPRECATIONS_CHANNEL}
@@ -45,7 +48,9 @@ services:
 
       - MEMCACHED_HOST=${MEMCACHED_HOST}
 
+      - REDIS_CLIENT=${REDIS_CLIENT}
       - REDIS_HOST=${REDIS_HOST}
+      - REDIS_USERNAME=${REDIS_USERNAME}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - REDIS_PORT=${REDIS_PORT}
 
@@ -69,13 +74,40 @@ services:
       - PUSHER_APP_SECRET=${PUSHER_APP_SECRET}
       - PUSHER_APP_CLUSTER=${PUSHER_APP_CLUSTER}
 
-      - MIX_PUSHER_APP_KEY="${MIX_PUSHER_APP_KEY}"
-      - MIX_PUSHER_APP_CLUSTER="${MIX_PUSHER_APP_CLUSTER}"
-#    volumes:
-#      - ../iotportaldata/env/.env:/var/www/.env
-#      - ../iotportaldata/app/storage/app:/var/www/storage/app
-#      - ../iotportaldata/app/storage/framework:/var/www/storage/framework
-#      - ../iotportaldata/ca-certificates:/iotportal/ca-certificates
+      - MIX_PUSHER_APP_KEY=${MIX_PUSHER_APP_KEY}
+      - MIX_PUSHER_APP_CLUSTER=${MIX_PUSHER_APP_CLUSTER}
+
+      - MQTT_EXTERNAL_ENDPOINT=${MQTT_EXTERNAL_ENDPOINT}
+      - MQTT_HOST=${MQTT_HOST}
+      - MQTT_PORT=${MQTT_PORT}
+      - MQTT_CLIENT_ID_PREFIX=${MQTT_CLIENT_ID_PREFIX}
+      - MQTT_CLIENT_ID=${MQTT_CLIENT_ID}
+      - MQTT_CLEAN_SESSION=${MQTT_CLEAN_SESSION}
+      - MQTT_ENABLE_LOGGING=${MQTT_ENABLE_LOGGING}
+#      - MQTT_TLS_ENABLED=${MQTT_TLS_ENABLED}
+#      - MQTT_TLS_ALLOW_SELF_SIGNED_CERT=${MQTT_TLS_ALLOW_SELF_SIGNED_CERT}
+#      - MQTT_TLS_VERIFY_PEER=${MQTT_TLS_VERIFY_PEER}
+#      - MQTT_TLS_VERIFY_PEER_NAME=${MQTT_TLS_VERIFY_PEER_NAME}
+#      - MQTT_TLS_CA_FILE=${MQTT_TLS_CA_FILE}
+#      - MQTT_TLS_CA_PATH=${MQTT_TLS_CA_PATH}
+#      - MQTT_TLS_CLIENT_CERT_FILE=${MQTT_TLS_CLIENT_CERT_FILE}
+#      - MQTT_TLS_CLIENT_CERT_KEY_FILE=${MQTT_TLS_CLIENT_CERT_KEY_FILE}
+#      - MQTT_TLS_CLIENT_CERT_KEY_PASSPHRASE=${MQTT_TLS_CLIENT_CERT_KEY_PASSPHRASE}
+      - MQTT_AUTH_USERNAME=${MQTT_AUTH_USERNAME}
+      - MQTT_AUTH_PASSWORD=${MQTT_AUTH_PASSWORD}
+      - MQTT_LAST_WILL_TOPIC=${MQTT_LAST_WILL_TOPIC}
+      - MQTT_LAST_WILL_MESSAGE=${MQTT_LAST_WILL_MESSAGE}
+      - MQTT_LAST_WILL_QUALITY_OF_SERVICE=${MQTT_LAST_WILL_QUALITY_OF_SERVICE}
+      - MQTT_LAST_WILL_RETAIN=${MQTT_LAST_WILL_RETAIN}
+      - MQTT_CONNECT_TIMEOUT=${MQTT_CONNECT_TIMEOUT}
+      - MQTT_SOCKET_TIMEOUT=${MQTT_SOCKET_TIMEOUT}
+      - MQTT_RESEND_TIMEOUT=${MQTT_RESEND_TIMEOUT}
+      - MQTT_KEEP_ALIVE_INTERVAL=${MQTT_KEEP_ALIVE_INTERVAL}
+    volumes:
+      - api-bootstrap-cache:/var/www/html/bootstrap/cache
+      - api-storage-app:/var/www/html/storage/app
+      - api-storage-framework:/var/www/html/storage/framework
+    #      - ../iotportaldata/ca-certificates:/iotportal/ca-certificates
     networks:
       - iotportaldevicemanagement
 
@@ -90,19 +122,18 @@ services:
         max-size: "500k"
         max-file: "10"
     restart: always
-#    read_only: true
-#    depends_on:
-#      - ${NGINX_PHP_UPSTREAM_CONTAINER}
-#    volumes:
-#      - ../iotportaldata/nginx/nginx.conf:/etc/nginx/nginx.conf
-#      - ../iotportaldata/nginx/sites-available:/etc/nginx/sites-available
-#      - ../iotportaldata/ssl:/etc/nginx/ssl
-#    tmpfs:
-#      - /var/cache/nginx:uid=${LOCAL_UID},gid=${LOCAL_GID}
-#      - /run:uid=${LOCAL_UID},gid=${LOCAL_GID}
+    read_only: true
+    #    depends_on:
+    #      - ${NGINX_PHP_UPSTREAM_CONTAINER}
+    volumes:
+      - nginx-run:/run
+      - nginx-cache:/var/cache/nginx
+    #      - ../iotportaldata/nginx/redis.conf:/etc/nginx/redis.conf
+    #      - ../iotportaldata/nginx/sites-available:/etc/nginx/sites-available
+    #      - ../iotportaldata/ssl:/etc/nginx/ssl
     ports:
       - "${NGINX_HTTP_PORT:-80}:80"
-#      - "${NGINX_HTTPS_PORT:-443}:443"
+    #      - "${NGINX_HTTPS_PORT:-443}:443"
     networks:
       - iotportaldevicemanagement
 
@@ -117,19 +148,150 @@ services:
         max-size: "500k"
         max-file: "10"
     restart: always
-    #    read_only: true
+    read_only: true
     environment:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    #    volumes:
-    #      - ../iotportaldata/mysql/data:/var/lib/mysql
+    volumes:
+      - postgres-run:/var/run/postgresql
+      - postgres-data:/var/lib/postgresql/data
     #      - ../iotportaldata/ssl:/mysql/ssl
-    #    tmpfs:
-    #      - /tmp:uid=${LOCAL_UID},gid=${LOCAL_GID}
-    #      - /run/mysqld:uid=${LOCAL_UID},gid=${LOCAL_GID}
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - iotportaldevicemanagement
+
+  queue-worker:
+    image: iotportaldevicemanagement-api
+    container_name: iotportaldevicemanagement-queue-worker
+    labels:
+      - "com.iotportaldevicemanagement.product=iotportaldevicemanagement"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "500k"
+        max-file: "10"
+    restart: always
+    read_only: true
+#    depends_on:
+#      - app
+#      - ${DB_HOST}
+#      - ${MQTT_HOST}
+#      - ${REDIS_HOST}
+    environment:
+      - ROLE=queue-worker
+
+      - APP_NAME=${APP_NAME}
+      - APP_ENV=${APP_ENV}
+      - APP_KEY=${APP_KEY}
+      - APP_DEBUG=${APP_DEBUG}
+      - APP_HOST=${APP_HOST}
+      - APP_URL=${APP_URL}
+      - FRONTEND_URL=${FRONTEND_URL}
+      - SANCTUM_STATEFUL_DOMAINS=${SANCTUM_STATEFUL_DOMAINS}
+
+      - LOG_CHANNEL=${LOG_CHANNEL}
+      - LOG_DEPRECATIONS_CHANNEL=${LOG_DEPRECATIONS_CHANNEL}
+      - LOG_LEVEL=${LOG_LEVEL}
+
+      - DB_CONNECTION=${DB_CONNECTION}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+
+      - BROADCAST_DRIVER=${BROADCAST_DRIVER}
+      - CACHE_DRIVER=${CACHE_DRIVER}
+      - FILESYSTEM_DISK=${FILESYSTEM_DISK}
+      - QUEUE_CONNECTION=${QUEUE_CONNECTION}
+      - SESSION_DRIVER=${SESSION_DRIVER}
+      - SESSION_LIFETIME=${SESSION_LIFETIME}
+
+      - MEMCACHED_HOST=${MEMCACHED_HOST}
+
+      - REDIS_CLIENT=${REDIS_CLIENT}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_USERNAME=${REDIS_USERNAME}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_PORT=${REDIS_PORT}
+
+      - MAIL_MAILER=${MAIL_MAILER}
+      - MAIL_HOST=${MAIL_HOST}
+      - MAIL_PORT=${MAIL_PORT}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - MAIL_ENCRYPTION=${MAIL_ENCRYPTION}
+      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS}
+      - MAIL_FROM_NAME=${MAIL_FROM_NAME}
+
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+      - AWS_BUCKET=${AWS_BUCKET}
+      - AWS_USE_PATH_STYLE_ENDPOINT=${AWS_USE_PATH_STYLE_ENDPOINT}
+
+      - PUSHER_APP_ID=${PUSHER_APP_ID}
+      - PUSHER_APP_KEY=${PUSHER_APP_KEY}
+      - PUSHER_APP_SECRET=${PUSHER_APP_SECRET}
+      - PUSHER_APP_CLUSTER=${PUSHER_APP_CLUSTER}
+
+      - MIX_PUSHER_APP_KEY=${MIX_PUSHER_APP_KEY}
+      - MIX_PUSHER_APP_CLUSTER=${MIX_PUSHER_APP_CLUSTER}
+
+      - MQTT_EXTERNAL_ENDPOINT=${MQTT_EXTERNAL_ENDPOINT}
+      - MQTT_HOST=${MQTT_HOST}
+      - MQTT_PORT=${MQTT_PORT}
+      - MQTT_CLIENT_ID_PREFIX=${MQTT_CLIENT_ID_PREFIX}
+      - MQTT_CLIENT_ID=${MQTT_CLIENT_ID}
+      - MQTT_CLEAN_SESSION=${MQTT_CLEAN_SESSION}
+      - MQTT_ENABLE_LOGGING=${MQTT_ENABLE_LOGGING}
+      #      - MQTT_TLS_ENABLED=${MQTT_TLS_ENABLED}
+      #      - MQTT_TLS_ALLOW_SELF_SIGNED_CERT=${MQTT_TLS_ALLOW_SELF_SIGNED_CERT}
+      #      - MQTT_TLS_VERIFY_PEER=${MQTT_TLS_VERIFY_PEER}
+      #      - MQTT_TLS_VERIFY_PEER_NAME=${MQTT_TLS_VERIFY_PEER_NAME}
+      #      - MQTT_TLS_CA_FILE=${MQTT_TLS_CA_FILE}
+      #      - MQTT_TLS_CA_PATH=${MQTT_TLS_CA_PATH}
+      #      - MQTT_TLS_CLIENT_CERT_FILE=${MQTT_TLS_CLIENT_CERT_FILE}
+      #      - MQTT_TLS_CLIENT_CERT_KEY_FILE=${MQTT_TLS_CLIENT_CERT_KEY_FILE}
+      #      - MQTT_TLS_CLIENT_CERT_KEY_PASSPHRASE=${MQTT_TLS_CLIENT_CERT_KEY_PASSPHRASE}
+      - MQTT_AUTH_USERNAME=${MQTT_AUTH_USERNAME}
+      - MQTT_AUTH_PASSWORD=${MQTT_AUTH_PASSWORD}
+      - MQTT_LAST_WILL_TOPIC=${MQTT_LAST_WILL_TOPIC}
+      - MQTT_LAST_WILL_MESSAGE=${MQTT_LAST_WILL_MESSAGE}
+      - MQTT_LAST_WILL_QUALITY_OF_SERVICE=${MQTT_LAST_WILL_QUALITY_OF_SERVICE}
+      - MQTT_LAST_WILL_RETAIN=${MQTT_LAST_WILL_RETAIN}
+      - MQTT_CONNECT_TIMEOUT=${MQTT_CONNECT_TIMEOUT}
+      - MQTT_SOCKET_TIMEOUT=${MQTT_SOCKET_TIMEOUT}
+      - MQTT_RESEND_TIMEOUT=${MQTT_RESEND_TIMEOUT}
+      - MQTT_KEEP_ALIVE_INTERVAL=${MQTT_KEEP_ALIVE_INTERVAL}
+    volumes:
+      - queue-worker-bootstrap-cache:/var/www/html/bootstrap/cache
+      - api-storage-app:/var/www/html/storage/app
+      - queue-worker-storage-framework:/var/www/html/storage/framework
+#      - ../iotportaldata/ca-certificates:/iotportal/ca-certificates
+    networks:
+      - iotportaldevicemanagement
+
+  redis:
+    image: iotportaldevicemanagement-redis
+    container_name: iotportaldevicemanagement-redis
+    labels:
+      - "com.iotportaldevicemanagement.product=iotportaldevicemanagement"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "500k"
+        max-file: "10"
+    restart: always
+    read_only: true
+    volumes:
+      - redis-acl:/etc/redis/acl
+      - redis-data:/data
+#      - ../iotportaldata/ca-certificates:/ca-certificates
+    ports:
+      - "${DOCKER_REDIS_PORT:-6379}:6379"
     networks:
       - iotportaldevicemanagement
 
@@ -144,15 +306,15 @@ services:
         max-size: "500k"
         max-file: "10"
     restart: always
-#    read_only: true
+    read_only: true
     environment:
       - DOCKER_VERNEMQ_ACCEPT_EULA=${DOCKER_VERNEMQ_ACCEPT_EULA}
       - DOCKER_VERNEMQ_ALLOW_ANONYMOUS=${DOCKER_VERNEMQ_ALLOW_ANONYMOUS}
       - DOCKER_VERNEMQ_LOG__CONSOLE=${DOCKER_VERNEMQ_LOG__CONSOLE}
       - DOCKER_VERNEMQ_SYSTREE_ENABLED=${DOCKER_VERNEMQ_SYSTREE_ENABLED}
-#     -  DOCKER_VERNEMQ_LISTENER__SSL__CAFILE=${DOCKER_VERNEMQ_LISTENER__SSL__CAFILE}
-#     -  DOCKER_VERNEMQ_LISTENER__SSL__CERTFILE=${DOCKER_VERNEMQ_LISTENER__SSL__CERTFILE}
-#     -  DOCKER_VERNEMQ_LISTENER__SSL__KEYFILE=${DOCKER_VERNEMQ_LISTENER__SSL__KEYFILE}
+      #     -  DOCKER_VERNEMQ_LISTENER__SSL__CAFILE=${DOCKER_VERNEMQ_LISTENER__SSL__CAFILE}
+      #     -  DOCKER_VERNEMQ_LISTENER__SSL__CERTFILE=${DOCKER_VERNEMQ_LISTENER__SSL__CERTFILE}
+      #     -  DOCKER_VERNEMQ_LISTENER__SSL__KEYFILE=${DOCKER_VERNEMQ_LISTENER__SSL__KEYFILE}
       - DOCKER_VERNEMQ_PLUGINS__VMQ_ACL=${DOCKER_VERNEMQ_PLUGINS__VMQ_ACL}
       - DOCKER_VERNEMQ_PLUGINS__VMQ_WEBHOOKS=${DOCKER_VERNEMQ_PLUGINS__VMQ_WEBHOOKS}
       - DOCKER_VERNEMQ_VMQ_WEBHOOKS__AUTH_ON_REGISTER__HOOK=${DOCKER_VERNEMQ_VMQ_WEBHOOKS__AUTH_ON_REGISTER__HOOK}
@@ -165,17 +327,15 @@ services:
       - DOCKER_VERNEMQ_VMQ_WEBHOOKS__ON_CLIENT_OFFLINE__ENDPOINT=${DOCKER_VERNEMQ_VMQ_WEBHOOKS__ON_CLIENT_OFFLINE__ENDPOINT}
       - DOCKER_VERNEMQ_VMQ_WEBHOOKS__ON_CLIENT_GONE__HOOK=${DOCKER_VERNEMQ_VMQ_WEBHOOKS__ON_CLIENT_GONE__HOOK}
       - DOCKER_VERNEMQ_VMQ_WEBHOOKS__ON_CLIENT_GONE__ENDPOINT=${DOCKER_VERNEMQ_VMQ_WEBHOOKS__ON_CLIENT_GONE__ENDPOINT}
-#     - DOCKER_VERNEMQ_VMQ_WEBHOOKS__CAFILE=${DOCKER_VERNEMQ_VMQ_WEBHOOKS__CAFILE}
-#     - DOCKER_VERNEMQ_VMQ_WEBHOOKS-_USE_CRLS=${DOCKER_VERNEMQ_VMQ_WEBHOOKS__USE_CRLS}
-#    volumes:
-#      - ../iotportaldata/vernemq/etc:/vernemq/etc
-#      - ../iotportaldata/vernemq/data:/vernemq/data
-#      - ../iotportaldata/ssl:/vernemq/ssl
-#    tmpfs:
-#      - /tmp:uid=${LOCAL_UID},gid=${LOCAL_GID}
+    #     - DOCKER_VERNEMQ_VMQ_WEBHOOKS__CAFILE=${DOCKER_VERNEMQ_VMQ_WEBHOOKS__CAFILE}
+    #     - DOCKER_VERNEMQ_VMQ_WEBHOOKS-_USE_CRLS=${DOCKER_VERNEMQ_VMQ_WEBHOOKS__USE_CRLS}
+    volumes:
+      - vernemq-etc:/vernemq/etc
+      - vernemq-data:/vernemq/data
+    #      - ../iotportaldata/ssl:/vernemq/ssl
     ports:
       - "${DOCKER_VERNEMQ_TCP_PORT:-1883}:1883"
-#      - "${DOCKER_VERNEMQ_SSL_PORT:-8883}:8883"
+    #      - "${DOCKER_VERNEMQ_SSL_PORT:-8883}:8883"
     networks:
       - iotportaldevicemanagement
 
@@ -190,19 +350,50 @@ services:
         max-size: "500k"
         max-file: "10"
     restart: always
-    #    read_only: true
+    read_only: true
     environment:
       - NODE_ENV=${NODE_ENV}
       - NEXT_TELEMETRY_DISABLED=${NEXT_TELEMETRY_DISABLED}
       - NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}
-    #    tmpfs:
-    #      - /tmp:uid=${LOCAL_UID},gid=${LOCAL_GID}
+    volumes:
+      - web-npm:/home/web/.npm
     networks:
       - iotportaldevicemanagement
 
 networks:
   iotportaldevicemanagement:
     driver: bridge
+
+volumes:
+  api-bootstrap-cache:
+    driver: local
+  api-storage-app:
+    driver: local
+  api-storage-framework:
+    driver: local
+  nginx-run:
+    driver: local
+  nginx-cache:
+    driver: local
+  postgres-run:
+    driver: local
+  postgres-data:
+    driver: local
+  queue-worker-bootstrap-cache:
+    driver: local
+  queue-worker-storage-framework:
+    driver: local
+  redis-acl:
+    external: true
+    name: redis-acl
+  redis-data:
+    driver: local
+  vernemq-etc:
+    driver: local
+  vernemq-data:
+    driver: local
+  web-npm:
+    driver: local
 
 # docker compose -f compose/docker-compose.yml --env-file .env.production up -d
 # docker compose -f compose/docker-compose.yml --env-file .env.production down

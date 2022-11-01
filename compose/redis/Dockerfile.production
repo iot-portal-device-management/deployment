@@ -1,0 +1,10 @@
+# Defaults
+ARG REDIS_VERSION=7.0.5-alpine3.16
+
+FROM redis:${REDIS_VERSION}
+
+COPY compose/redis/configs/redis.conf /usr/local/etc/redis/redis.conf
+
+CMD ["redis-server", "/usr/local/etc/redis/redis.conf"]
+
+# docker build -f compose/redis/Dockerfile.production -t iotportaldevicemanagement-redis .
