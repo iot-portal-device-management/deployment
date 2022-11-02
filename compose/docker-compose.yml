@@ -12,10 +12,10 @@ services:
         max-file: "10"
     restart: always
     read_only: true
-    #    depends_on:
-    #      - ${DB_HOST}
-    #      - ${MQTT_HOST}
-    #      - ${REDIS_HOST}
+    depends_on:
+      - postgres
+      - redis
+      - vernemq
     environment:
       - ROLE=api
 
@@ -123,8 +123,9 @@ services:
         max-file: "10"
     restart: always
     read_only: true
-    #    depends_on:
-    #      - ${NGINX_PHP_UPSTREAM_CONTAINER}
+    depends_on:
+      - api
+      - web
     volumes:
       - nginx-run:/run
       - nginx-cache:/var/cache/nginx
@@ -174,11 +175,10 @@ services:
         max-file: "10"
     restart: always
     read_only: true
-#    depends_on:
-#      - app
-#      - ${DB_HOST}
-#      - ${MQTT_HOST}
-#      - ${REDIS_HOST}
+    depends_on:
+      - postgres
+      - redis
+      - vernemq
     environment:
       - ROLE=queue-worker
 
