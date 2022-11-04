@@ -38,6 +38,8 @@ services:
       - DB_DATABASE=${DB_DATABASE}
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
+      - DB_SSLMODE=${DB_SSLMODE}
+      - DB_SSLROOTCERT=${DB_SSLROOTCERT}
 
       - BROADCAST_DRIVER=${BROADCAST_DRIVER}
       - CACHE_DRIVER=${CACHE_DRIVER}
@@ -49,10 +51,13 @@ services:
       - MEMCACHED_HOST=${MEMCACHED_HOST}
 
       - REDIS_CLIENT=${REDIS_CLIENT}
+      - REDIS_SCHEME=${REDIS_SCHEME}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_USERNAME=${REDIS_USERNAME}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - REDIS_PORT=${REDIS_PORT}
+      - REDIS_VERIFY_PEER=${REDIS_VERIFY_PEER}
+      - REDIS_CAFILE=${REDIS_CAFILE}
 
       - MAIL_MAILER=${MAIL_MAILER}
       - MAIL_HOST=${MAIL_HOST}
@@ -84,15 +89,15 @@ services:
       - MQTT_CLIENT_ID=${MQTT_CLIENT_ID}
       - MQTT_CLEAN_SESSION=${MQTT_CLEAN_SESSION}
       - MQTT_ENABLE_LOGGING=${MQTT_ENABLE_LOGGING}
-#      - MQTT_TLS_ENABLED=${MQTT_TLS_ENABLED}
-#      - MQTT_TLS_ALLOW_SELF_SIGNED_CERT=${MQTT_TLS_ALLOW_SELF_SIGNED_CERT}
-#      - MQTT_TLS_VERIFY_PEER=${MQTT_TLS_VERIFY_PEER}
-#      - MQTT_TLS_VERIFY_PEER_NAME=${MQTT_TLS_VERIFY_PEER_NAME}
-#      - MQTT_TLS_CA_FILE=${MQTT_TLS_CA_FILE}
-#      - MQTT_TLS_CA_PATH=${MQTT_TLS_CA_PATH}
-#      - MQTT_TLS_CLIENT_CERT_FILE=${MQTT_TLS_CLIENT_CERT_FILE}
-#      - MQTT_TLS_CLIENT_CERT_KEY_FILE=${MQTT_TLS_CLIENT_CERT_KEY_FILE}
-#      - MQTT_TLS_CLIENT_CERT_KEY_PASSPHRASE=${MQTT_TLS_CLIENT_CERT_KEY_PASSPHRASE}
+      - MQTT_TLS_ENABLED=${MQTT_TLS_ENABLED}
+      - MQTT_TLS_ALLOW_SELF_SIGNED_CERT=${MQTT_TLS_ALLOW_SELF_SIGNED_CERT}
+      - MQTT_TLS_VERIFY_PEER=${MQTT_TLS_VERIFY_PEER}
+      - MQTT_TLS_VERIFY_PEER_NAME=${MQTT_TLS_VERIFY_PEER_NAME}
+      - MQTT_TLS_CA_FILE=${MQTT_TLS_CA_FILE}
+      - MQTT_TLS_CA_PATH=${MQTT_TLS_CA_PATH}
+      - MQTT_TLS_CLIENT_CERT_FILE=${MQTT_TLS_CLIENT_CERT_FILE}
+      - MQTT_TLS_CLIENT_CERT_KEY_FILE=${MQTT_TLS_CLIENT_CERT_KEY_FILE}
+      - MQTT_TLS_CLIENT_CERT_KEY_PASSPHRASE=${MQTT_TLS_CLIENT_CERT_KEY_PASSPHRASE}
       - MQTT_AUTH_USERNAME=${MQTT_AUTH_USERNAME}
       - MQTT_AUTH_PASSWORD=${MQTT_AUTH_PASSWORD}
       - MQTT_LAST_WILL_TOPIC=${MQTT_LAST_WILL_TOPIC}
@@ -107,9 +112,9 @@ services:
       - api-bootstrap-cache:/var/www/html/bootstrap/cache
       - api-storage-app:/var/www/html/storage/app
       - api-storage-framework:/var/www/html/storage/framework
-    #      - ../iotportaldata/ca-certificates:/iotportal/ca-certificates
+      - certificates:/certificates
     networks:
-      - iotportaldevicemanagement
+      - internal
 
   nginx:
     image: iotportaldevicemanagement-nginx
@@ -129,14 +134,12 @@ services:
     volumes:
       - nginx-run:/run
       - nginx-cache:/var/cache/nginx
-    #      - ../iotportaldata/nginx/redis.conf:/etc/nginx/redis.conf
-    #      - ../iotportaldata/nginx/sites-available:/etc/nginx/sites-available
-    #      - ../iotportaldata/ssl:/etc/nginx/ssl
+      - nginx-certificates:/certificates
     ports:
       - "${NGINX_HTTP_PORT:-80}:80"
-    #      - "${NGINX_HTTPS_PORT:-443}:443"
+      - "${NGINX_HTTPS_PORT:-443}:443"
     networks:
-      - iotportaldevicemanagement
+      - internal
 
   postgres:
     image: iotportaldevicemanagement-postgres
@@ -157,11 +160,11 @@ services:
     volumes:
       - postgres-run:/var/run/postgresql
       - postgres-data:/var/lib/postgresql/data
-    #      - ../iotportaldata/ssl:/mysql/ssl
+      - postgres-certificates:/certificates
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     networks:
-      - iotportaldevicemanagement
+      - internal
 
   queue-worker:
     image: iotportaldevicemanagement-api
@@ -201,6 +204,8 @@ services:
       - DB_DATABASE=${DB_DATABASE}
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
+      - DB_SSLMODE=${DB_SSLMODE}
+      - DB_SSLROOTCERT=${DB_SSLROOTCERT}
 
       - BROADCAST_DRIVER=${BROADCAST_DRIVER}
       - CACHE_DRIVER=${CACHE_DRIVER}
@@ -212,10 +217,13 @@ services:
       - MEMCACHED_HOST=${MEMCACHED_HOST}
 
       - REDIS_CLIENT=${REDIS_CLIENT}
+      - REDIS_SCHEME=${REDIS_SCHEME}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_USERNAME=${REDIS_USERNAME}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - REDIS_PORT=${REDIS_PORT}
+      - REDIS_VERIFY_PEER=${REDIS_VERIFY_PEER}
+      - REDIS_CAFILE=${REDIS_CAFILE}
 
       - MAIL_MAILER=${MAIL_MAILER}
       - MAIL_HOST=${MAIL_HOST}
@@ -247,15 +255,15 @@ services:
       - MQTT_CLIENT_ID=${MQTT_CLIENT_ID}
       - MQTT_CLEAN_SESSION=${MQTT_CLEAN_SESSION}
       - MQTT_ENABLE_LOGGING=${MQTT_ENABLE_LOGGING}
-      #      - MQTT_TLS_ENABLED=${MQTT_TLS_ENABLED}
-      #      - MQTT_TLS_ALLOW_SELF_SIGNED_CERT=${MQTT_TLS_ALLOW_SELF_SIGNED_CERT}
-      #      - MQTT_TLS_VERIFY_PEER=${MQTT_TLS_VERIFY_PEER}
-      #      - MQTT_TLS_VERIFY_PEER_NAME=${MQTT_TLS_VERIFY_PEER_NAME}
-      #      - MQTT_TLS_CA_FILE=${MQTT_TLS_CA_FILE}
-      #      - MQTT_TLS_CA_PATH=${MQTT_TLS_CA_PATH}
-      #      - MQTT_TLS_CLIENT_CERT_FILE=${MQTT_TLS_CLIENT_CERT_FILE}
-      #      - MQTT_TLS_CLIENT_CERT_KEY_FILE=${MQTT_TLS_CLIENT_CERT_KEY_FILE}
-      #      - MQTT_TLS_CLIENT_CERT_KEY_PASSPHRASE=${MQTT_TLS_CLIENT_CERT_KEY_PASSPHRASE}
+      - MQTT_TLS_ENABLED=${MQTT_TLS_ENABLED}
+      - MQTT_TLS_ALLOW_SELF_SIGNED_CERT=${MQTT_TLS_ALLOW_SELF_SIGNED_CERT}
+      - MQTT_TLS_VERIFY_PEER=${MQTT_TLS_VERIFY_PEER}
+      - MQTT_TLS_VERIFY_PEER_NAME=${MQTT_TLS_VERIFY_PEER_NAME}
+      - MQTT_TLS_CA_FILE=${MQTT_TLS_CA_FILE}
+      - MQTT_TLS_CA_PATH=${MQTT_TLS_CA_PATH}
+      - MQTT_TLS_CLIENT_CERT_FILE=${MQTT_TLS_CLIENT_CERT_FILE}
+      - MQTT_TLS_CLIENT_CERT_KEY_FILE=${MQTT_TLS_CLIENT_CERT_KEY_FILE}
+      - MQTT_TLS_CLIENT_CERT_KEY_PASSPHRASE=${MQTT_TLS_CLIENT_CERT_KEY_PASSPHRASE}
       - MQTT_AUTH_USERNAME=${MQTT_AUTH_USERNAME}
       - MQTT_AUTH_PASSWORD=${MQTT_AUTH_PASSWORD}
       - MQTT_LAST_WILL_TOPIC=${MQTT_LAST_WILL_TOPIC}
@@ -270,9 +278,9 @@ services:
       - queue-worker-bootstrap-cache:/var/www/html/bootstrap/cache
       - api-storage-app:/var/www/html/storage/app
       - queue-worker-storage-framework:/var/www/html/storage/framework
-#      - ../iotportaldata/ca-certificates:/iotportal/ca-certificates
+      - certificates:/certificates
     networks:
-      - iotportaldevicemanagement
+      - internal
 
   redis:
     image: iotportaldevicemanagement-redis
@@ -289,11 +297,11 @@ services:
     volumes:
       - redis-acl:/etc/redis/acl
       - redis-data:/data
-#      - ../iotportaldata/ca-certificates:/ca-certificates
+      - redis-certificates:/certificates
     ports:
       - "${DOCKER_REDIS_PORT:-6379}:6379"
     networks:
-      - iotportaldevicemanagement
+      - internal
 
   vernemq:
     image: iotportaldevicemanagement-vernemq
@@ -310,11 +318,14 @@ services:
     environment:
       - DOCKER_VERNEMQ_ACCEPT_EULA=${DOCKER_VERNEMQ_ACCEPT_EULA}
       - DOCKER_VERNEMQ_ALLOW_ANONYMOUS=${DOCKER_VERNEMQ_ALLOW_ANONYMOUS}
+      - DOCKER_VERNEMQ_MAX_CLIENT_ID_SIZE=${DOCKER_VERNEMQ_MAX_CLIENT_ID_SIZE}
       - DOCKER_VERNEMQ_LOG__CONSOLE=${DOCKER_VERNEMQ_LOG__CONSOLE}
       - DOCKER_VERNEMQ_SYSTREE_ENABLED=${DOCKER_VERNEMQ_SYSTREE_ENABLED}
-      #     -  DOCKER_VERNEMQ_LISTENER__SSL__CAFILE=${DOCKER_VERNEMQ_LISTENER__SSL__CAFILE}
-      #     -  DOCKER_VERNEMQ_LISTENER__SSL__CERTFILE=${DOCKER_VERNEMQ_LISTENER__SSL__CERTFILE}
-      #     -  DOCKER_VERNEMQ_LISTENER__SSL__KEYFILE=${DOCKER_VERNEMQ_LISTENER__SSL__KEYFILE}
+      - DOCKER_VERNEMQ_LISTENER__SSL__DEFAULT=${DOCKER_VERNEMQ_LISTENER__SSL__DEFAULT}
+      - DOCKER_VERNEMQ_LISTENER__SSL__CAFILE=${DOCKER_VERNEMQ_LISTENER__SSL__CAFILE}
+      - DOCKER_VERNEMQ_LISTENER__SSL__CERTFILE=${DOCKER_VERNEMQ_LISTENER__SSL__CERTFILE}
+      - DOCKER_VERNEMQ_LISTENER__SSL__KEYFILE=${DOCKER_VERNEMQ_LISTENER__SSL__KEYFILE}
+      - DOCKER_VERNEMQ_LISTENER__SSL__CIPHERS=${DOCKER_VERNEMQ_LISTENER__SSL__CIPHERS}
       - DOCKER_VERNEMQ_PLUGINS__VMQ_ACL=${DOCKER_VERNEMQ_PLUGINS__VMQ_ACL}
       - DOCKER_VERNEMQ_PLUGINS__VMQ_WEBHOOKS=${DOCKER_VERNEMQ_PLUGINS__VMQ_WEBHOOKS}
       - DOCKER_VERNEMQ_VMQ_WEBHOOKS__AUTH_ON_REGISTER__HOOK=${DOCKER_VERNEMQ_VMQ_WEBHOOKS__AUTH_ON_REGISTER__HOOK}
@@ -327,17 +338,17 @@ services:
       - DOCKER_VERNEMQ_VMQ_WEBHOOKS__ON_CLIENT_OFFLINE__ENDPOINT=${DOCKER_VERNEMQ_VMQ_WEBHOOKS__ON_CLIENT_OFFLINE__ENDPOINT}
       - DOCKER_VERNEMQ_VMQ_WEBHOOKS__ON_CLIENT_GONE__HOOK=${DOCKER_VERNEMQ_VMQ_WEBHOOKS__ON_CLIENT_GONE__HOOK}
       - DOCKER_VERNEMQ_VMQ_WEBHOOKS__ON_CLIENT_GONE__ENDPOINT=${DOCKER_VERNEMQ_VMQ_WEBHOOKS__ON_CLIENT_GONE__ENDPOINT}
-    #     - DOCKER_VERNEMQ_VMQ_WEBHOOKS__CAFILE=${DOCKER_VERNEMQ_VMQ_WEBHOOKS__CAFILE}
-    #     - DOCKER_VERNEMQ_VMQ_WEBHOOKS-_USE_CRLS=${DOCKER_VERNEMQ_VMQ_WEBHOOKS__USE_CRLS}
+      - DOCKER_VERNEMQ_VMQ_WEBHOOKS__CAFILE=${DOCKER_VERNEMQ_VMQ_WEBHOOKS__CAFILE}
+      - DOCKER_VERNEMQ_VMQ_WEBHOOKS__USE_CRLS=${DOCKER_VERNEMQ_VMQ_WEBHOOKS__USE_CRLS}
     volumes:
       - vernemq-etc:/vernemq/etc
       - vernemq-data:/vernemq/data
-    #      - ../iotportaldata/ssl:/vernemq/ssl
+      - vernemq-tmp:/tmp
+      - vernemq-certificates:/certificates
     ports:
-      - "${DOCKER_VERNEMQ_TCP_PORT:-1883}:1883"
-    #      - "${DOCKER_VERNEMQ_SSL_PORT:-8883}:8883"
+      - "${VERNEMQ_SSL_PORT:-8883}:8883"
     networks:
-      - iotportaldevicemanagement
+      - internal
 
   web:
     image: iotportaldevicemanagement-web
@@ -358,10 +369,10 @@ services:
     volumes:
       - web-npm:/home/web/.npm
     networks:
-      - iotportaldevicemanagement
+      - internal
 
 networks:
-  iotportaldevicemanagement:
+  internal:
     driver: bridge
 
 volumes:
@@ -371,29 +382,46 @@ volumes:
     driver: local
   api-storage-framework:
     driver: local
+  certificates:
+    external: true
+    name: iotportaldevicemanagement_certificates
   nginx-run:
     driver: local
   nginx-cache:
     driver: local
+  nginx-certificates:
+    external: true
+    name: iotportaldevicemanagement_nginx-certificates
   postgres-run:
     driver: local
   postgres-data:
     driver: local
+  postgres-certificates:
+    external: true
+    name: iotportaldevicemanagement_postgres-certificates
   queue-worker-bootstrap-cache:
     driver: local
   queue-worker-storage-framework:
     driver: local
   redis-acl:
     external: true
-    name: redis-acl
+    name: iotportaldevicemanagement_redis-acl
   redis-data:
     driver: local
+  redis-certificates:
+    external: true
+    name: iotportaldevicemanagement_redis-certificates
   vernemq-etc:
     driver: local
   vernemq-data:
     driver: local
+  vernemq-tmp:
+    driver: local
+  vernemq-certificates:
+    external: true
+    name: iotportaldevicemanagement_vernemq-certificates
   web-npm:
     driver: local
 
-# docker compose -f compose/docker-compose.yml --env-file .env.production up -d
-# docker compose -f compose/docker-compose.yml --env-file .env.production down
+# docker compose -f compose/docker-compose.yml -p iotportaldevicemanagement --env-file .env.production up -d
+# docker compose -f compose/docker-compose.yml -p iotportaldevicemanagement --env-file .env.production down
