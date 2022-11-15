@@ -378,50 +378,78 @@ networks:
 volumes:
   api-bootstrap-cache:
     driver: local
+    labels:
+      - "com.iotportaldevicemanagement.product=iotportaldevicemanagement"
   api-storage-app:
     driver: local
+    labels:
+      - "com.iotportaldevicemanagement.product=iotportaldevicemanagement"
   api-storage-framework:
     driver: local
+    labels:
+      - "com.iotportaldevicemanagement.product=iotportaldevicemanagement"
   certificates:
     external: true
     name: iotportaldevicemanagement_certificates
   nginx-run:
     driver: local
+    labels:
+      - "com.iotportaldevicemanagement.product=iotportaldevicemanagement"
   nginx-cache:
     driver: local
+    labels:
+      - "com.iotportaldevicemanagement.product=iotportaldevicemanagement"
   nginx-certificates:
     external: true
     name: iotportaldevicemanagement_nginx-certificates
   postgres-run:
     driver: local
+    labels:
+      - "com.iotportaldevicemanagement.product=iotportaldevicemanagement"
   postgres-data:
     driver: local
+    labels:
+      - "com.iotportaldevicemanagement.product=iotportaldevicemanagement"
   postgres-certificates:
     external: true
     name: iotportaldevicemanagement_postgres-certificates
   queue-worker-bootstrap-cache:
     driver: local
+    labels:
+      - "com.iotportaldevicemanagement.product=iotportaldevicemanagement"
   queue-worker-storage-framework:
     driver: local
+    labels:
+      - "com.iotportaldevicemanagement.product=iotportaldevicemanagement"
   redis-acl:
     external: true
     name: iotportaldevicemanagement_redis-acl
   redis-data:
     driver: local
+    labels:
+      - "com.iotportaldevicemanagement.product=iotportaldevicemanagement"
   redis-certificates:
     external: true
     name: iotportaldevicemanagement_redis-certificates
   vernemq-etc:
     driver: local
+    labels:
+      - "com.iotportaldevicemanagement.product=iotportaldevicemanagement"
   vernemq-data:
     driver: local
+    labels:
+      - "com.iotportaldevicemanagement.product=iotportaldevicemanagement"
   vernemq-tmp:
     driver: local
+    labels:
+      - "com.iotportaldevicemanagement.product=iotportaldevicemanagement"
   vernemq-certificates:
     external: true
     name: iotportaldevicemanagement_vernemq-certificates
   web-npm:
     driver: local
+    labels:
+      - "com.iotportaldevicemanagement.product=iotportaldevicemanagement"
 
 # docker compose -f compose/docker-compose.yml -p iotportaldevicemanagement --env-file .env.production up -d
 # docker compose -f compose/docker-compose.yml -p iotportaldevicemanagement --env-file .env.production down

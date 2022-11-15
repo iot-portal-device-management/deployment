@@ -1,0 +1,173 @@
+# Defaults
+ARG UBUNTU_VERSION=22.04
+
+FROM ubuntu:${UBUNTU_VERSION}
+
+LABEL com.iotportaldevicemanagement.product="iotportaldevicemanagement"
+
+ARG HOSTNAME=localhost
+ARG LOCAL_UID=65534
+ARG LOCAL_GID=65534
+
+RUN set -eux; \
+    apt-get update; \
+    apt-get install -y \
+                  openssl; \
+    rm -rf /var/lib/apt/lists/*; \
+    # create certificates folder
+    mkdir -p /certificates; \
+    mkdir -p /postgres-certificates
+
+
+WORKDIR /certificates
+
+COPY ./build/certificate.conf .
+
+SHELL ["/bin/bash", "-c"]
+
+RUN set -eux; \
+    sed -i "s~CN =.*~CN = $HOSTNAME~g" certificate.conf; \
+    sed -i "s~DNS.1 =.*~DNS.1 = $HOSTNAME~g" certificate.conf; \
+    sed -i "s~DNS.2 =.*~DNS.2 = $HOSTNAME~g" certificate.conf; \
+    sed -i "s~IP.1 =.*~IP.1 = $HOSTNAME~g" certificate.conf; \
+# Generate rootCA.key (root CA private key) and rootCA.crt (root CA certficate)
+    openssl req \
+        -new -x509 -subj "/C=US/ST=Oregon/L=Oregon/O=Intel/OU=Intel Corporation/CN=Intel CA" \
+        -keyout rootCA.key -out rootCA.crt -days 1024 -passout pass:extraconfidential; \
+# Create a certificate key (Done for each server)
+    openssl genrsa -out localhost.key 2048; \
+# Create the signing certificate signing request(csr)
+    openssl req -new -sha256 \
+        -key localhost.key \
+        -subj "/C=US/ST=Oregon/L=Oregon/O=Intel/OU=Intel Corporation/CN=$HOSTNAME" \
+        -reqexts SAN \
+        -config <(cat /etc/ssl/openssl.cnf <(printf "\n[SAN]\nsubjectAltName=DNS:$HOSTNAME,IP:$HOSTNAME"))  \
+        \
+        -out localhost.csr; \
+# Verify the csr's content
+#RUN openssl req -in localhost.csr -noout -text
+#
+# Generate the certificate using the mydomain csr and key along with the CA Root key
+    openssl x509 \
+        -req -in localhost.csr -CA rootCA.crt -CAkey rootCA.key -CAcreateserial -out localhost.crt \
+        -days 365 -sha256 -passin pass:extraconfidential \
+        -extensions req_ext -extfile certificate.conf; \
+    chown -R $LOCAL_UID:$LOCAL_GID /certificates; \
+    chmod -R 755 /certificates
+
+
+# Generate nginx certificate
+WORKDIR /nginx-certificates
+
+RUN set -eux; \
+    cp /certificates/rootCA.crt .; \
+    cp /certificates/rootCA.key .; \
+    cp /certificates/certificate.conf .; \
+    sed -i "s~DNS.2 =.*~DNS.2 = nginx~g" certificate.conf; \
+# Create a certificate key (Done for each server)
+    openssl genrsa -out nginx.key 2048; \
+# Create the signing certificate signing request(csr)
+    openssl req -new -sha256 \
+        -key nginx.key \
+        -subj "/C=US/ST=Oregon/L=Oregon/O=Intel/OU=Intel Corporation/CN=$HOSTNAME" \
+        -reqexts SAN \
+        -config <(cat /etc/ssl/openssl.cnf <(printf "\n[SAN]\nsubjectAltName=DNS:$HOSTNAME,DNS:nginx,IP:$HOSTNAME"))  \
+        \
+        -out nginx.csr; \
+# Generate the certificate using the mydomain csr and key along with the CA Root key
+    openssl x509 \
+        -req -in nginx.csr -CA rootCA.crt -CAkey rootCA.key -CAcreateserial -out nginx.crt \
+        -days 365 -sha256 -passin pass:extraconfidential \
+        -extensions req_ext -extfile certificate.conf; \
+    chown -R 101:101  /nginx-certificates; \
+    chmod -R 0755 /nginx-certificates; \
+    chmod -R 0600 /nginx-certificates/nginx.key
+
+
+# Generate postgres certificate
+WORKDIR /postgres-certificates
+
+RUN set -eux; \
+    cp /certificates/rootCA.crt .; \
+    cp /certificates/rootCA.key .; \
+    cp /certificates/certificate.conf .; \
+    sed -i "s~DNS.2 =.*~DNS.2 = postgres~g" certificate.conf; \
+# Create a certificate key (Done for each server)
+    openssl genrsa -out postgres.key 2048; \
+# Create the signing certificate signing request(csr)
+    openssl req -new -sha256 \
+        -key postgres.key \
+        -subj "/C=US/ST=Oregon/L=Oregon/O=Intel/OU=Intel Corporation/CN=$HOSTNAME" \
+        -reqexts SAN \
+        -config <(cat /etc/ssl/openssl.cnf <(printf "\n[SAN]\nsubjectAltName=DNS:$HOSTNAME,DNS:postgres,IP:$HOSTNAME"))  \
+        \
+        -out postgres.csr; \
+# Generate the certificate using the mydomain csr and key along with the CA Root key
+    openssl x509 \
+        -req -in postgres.csr -CA rootCA.crt -CAkey rootCA.key -CAcreateserial -out postgres.crt \
+        -days 365 -sha256 -passin pass:extraconfidential \
+        -extensions req_ext -extfile certificate.conf; \
+    chown -R 70:70 /postgres-certificates; \
+    chmod -R 0755 /postgres-certificates; \
+    chmod -R 0600 /postgres-certificates/postgres.key
+
+
+# Generate redis certificate
+WORKDIR /redis-certificates
+
+RUN set -eux; \
+    cp /certificates/rootCA.crt .; \
+    cp /certificates/rootCA.key .; \
+    cp /certificates/certificate.conf .; \
+    sed -i "s~DNS.2 =.*~DNS.2 = redis~g" certificate.conf; \
+# Create a certificate key (Done for each server)
+    openssl genrsa -out redis.key 2048; \
+# Create the signing certificate signing request(csr)
+    openssl req -new -sha256 \
+        -key redis.key \
+        -subj "/C=US/ST=Oregon/L=Oregon/O=Intel/OU=Intel Corporation/CN=$HOSTNAME" \
+        -reqexts SAN \
+        -config <(cat /etc/ssl/openssl.cnf <(printf "\n[SAN]\nsubjectAltName=DNS:$HOSTNAME,DNS:redis,IP:$HOSTNAME"))  \
+        \
+        -out redis.csr; \
+# Generate the certificate using the mydomain csr and key along with the CA Root key
+    openssl x509 \
+        -req -in redis.csr -CA rootCA.crt -CAkey rootCA.key -CAcreateserial -out redis.crt \
+        -days 365 -sha256 -passin pass:extraconfidential \
+        -extensions req_ext -extfile certificate.conf; \
+    chown -R 999:1000 /redis-certificates; \
+    chmod -R 0755 /redis-certificates; \
+    chmod -R 0600 /redis-certificates/redis.key
+
+
+# Generate vernemq certificate
+WORKDIR /vernemq-certificates
+
+RUN set -eux; \
+    cp /certificates/rootCA.crt .; \
+    cp /certificates/rootCA.key .; \
+    cp /certificates/certificate.conf .; \
+    sed -i "s~DNS.2 =.*~DNS.2 = vernemq~g" certificate.conf; \
+# Create a certificate key (Done for each server)
+    openssl genrsa -out vernemq.key 2048; \
+# Create the signing certificate signing request(csr)
+    openssl req -new -sha256 \
+        -key vernemq.key \
+        -subj "/C=US/ST=Oregon/L=Oregon/O=Intel/OU=Intel Corporation/CN=$HOSTNAME" \
+        -reqexts SAN \
+        -config <(cat /etc/ssl/openssl.cnf <(printf "\n[SAN]\nsubjectAltName=DNS:$HOSTNAME,DNS:vernemq,IP:$HOSTNAME"))  \
+        \
+        -out vernemq.csr; \
+# Generate the certificate using the mydomain csr and key along with the CA Root key
+    openssl x509 \
+        -req -in vernemq.csr -CA rootCA.crt -CAkey rootCA.key -CAcreateserial -out vernemq.crt \
+        -days 365 -sha256 -passin pass:extraconfidential \
+        -extensions req_ext -extfile certificate.conf; \
+    chown -R 10000:10000 /vernemq-certificates; \
+    chmod -R 0755 /vernemq-certificates; \
+    chmod -R 0600 /vernemq-certificates/vernemq.key
+
+
+# docker build -f build/Dockerfile.production -t iotportaldevicemanagement-builder --build-arg HOSTNAME=192.168.0.161 .
+# docker run -d --name=iotportaldevicemanagement-builder -v iotportaldevicemanagement_certificates:/certificates -v iotportaldevicemanagement_nginx-certificates:/nginx-certificates -v iotportaldevicemanagement_postgres-certificates:/postgres-certificates -v iotportaldevicemanagement_redis-certificates:/redis-certificates -v iotportaldevicemanagement_vernemq-certificates:/vernemq-certificates iotportaldevicemanagement-builder
+# docker container stop iotportaldevicemanagement-builder && docker container rm iotportaldevicemanagement-builder
