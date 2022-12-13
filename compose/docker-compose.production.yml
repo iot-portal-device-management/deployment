@@ -1,0 +1,106 @@
+version: "3.9"
+services:
+  api:
+    read_only: true
+    volumes:
+      - api-bootstrap-cache:/var/www/html/bootstrap/cache
+      - api-storage-app:/var/www/html/storage/app
+      - api-storage-framework:/var/www/html/storage/framework
+
+  nginx:
+    read_only: true
+    volumes:
+      - nginx-run:/run
+      - nginx-cache:/var/cache/nginx
+
+  postgres:
+    read_only: true
+    volumes:
+      - postgres-run:/var/run/postgresql
+      - postgres-data:/var/lib/postgresql/data
+
+  queue-worker:
+    read_only: true
+    volumes:
+      - queue-worker-bootstrap-cache:/var/www/html/bootstrap/cache
+      - api-storage-app:/var/www/html/storage/app
+      - queue-worker-storage-framework:/var/www/html/storage/framework
+
+  redis:
+    read_only: true
+    volumes:
+      - redis-acl:/etc/redis/acl
+      - redis-data:/data
+
+  vernemq:
+    read_only: true
+    volumes:
+      - vernemq-etc:/vernemq/etc
+      - vernemq-data:/vernemq/data
+      - vernemq-tmp:/tmp
+
+  web:
+    read_only: true
+    volumes:
+      - web-npm:/home/web/.npm
+
+volumes:
+  api-bootstrap-cache:
+    driver: local
+    labels:
+      - "com.iotportaldevicemanagement.product=iotportaldevicemanagement"
+  api-storage-app:
+    driver: local
+    labels:
+      - "com.iotportaldevicemanagement.product=iotportaldevicemanagement"
+  api-storage-framework:
+    driver: local
+    labels:
+      - "com.iotportaldevicemanagement.product=iotportaldevicemanagement"
+  nginx-run:
+    driver: local
+    labels:
+      - "com.iotportaldevicemanagement.product=iotportaldevicemanagement"
+  nginx-cache:
+    driver: local
+    labels:
+      - "com.iotportaldevicemanagement.product=iotportaldevicemanagement"
+  postgres-run:
+    driver: local
+    labels:
+      - "com.iotportaldevicemanagement.product=iotportaldevicemanagement"
+  postgres-data:
+    driver: local
+    labels:
+      - "com.iotportaldevicemanagement.product=iotportaldevicemanagement"
+  queue-worker-bootstrap-cache:
+    driver: local
+    labels:
+      - "com.iotportaldevicemanagement.product=iotportaldevicemanagement"
+  queue-worker-storage-framework:
+    driver: local
+    labels:
+      - "com.iotportaldevicemanagement.product=iotportaldevicemanagement"
+  redis-acl:
+    external: true
+    name: iotportaldevicemanagement_redis-acl
+  redis-data:
+    driver: local
+    labels:
+      - "com.iotportaldevicemanagement.product=iotportaldevicemanagement"
+  vernemq-etc:
+    driver: local
+    labels:
+      - "com.iotportaldevicemanagement.product=iotportaldevicemanagement"
+  vernemq-data:
+    driver: local
+    labels:
+      - "com.iotportaldevicemanagement.product=iotportaldevicemanagement"
+  vernemq-tmp:
+    driver: local
+    labels:
+      - "com.iotportaldevicemanagement.product=iotportaldevicemanagement"
+  web-npm:
+    driver: local
+    labels:
+      - "com.iotportaldevicemanagement.product=iotportaldevicemanagement"
