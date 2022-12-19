@@ -133,3 +133,7 @@ fabric.properties
 # Ignore all local history of files
 .history
 .ionide
+
+# dotenv files
+.env.development
+.env.local
