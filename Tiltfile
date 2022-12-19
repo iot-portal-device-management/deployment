@@ -58,7 +58,7 @@ tiltfile_path = config.main_path
 
 if config.tilt_subcommand == 'up':
     print("""
-    \033[32m\033[32mHello World from tilt-avatars!\033[0m
+    \033[32m\033[32mHello World from iot-portal-device-management!\033[0m
 
     If this is your first time using Tilt and you'd like some guidance, we've got a tutorial to accompany this project:
     https://docs.tilt.dev/tutorial
