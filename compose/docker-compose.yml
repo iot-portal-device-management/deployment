@@ -22,6 +22,7 @@ services:
       - APP_ENV=${APP_ENV}
       - APP_KEY=${APP_KEY}
       - APP_DEBUG=${APP_DEBUG}
+      - APP_VERSION=${APP_VERSION}
       - APP_HOST=${APP_HOST}
       - APP_URL=${APP_URL}
       - FRONTEND_URL=${FRONTEND_URL}
@@ -178,6 +179,7 @@ services:
       - APP_ENV=${APP_ENV}
       - APP_KEY=${APP_KEY}
       - APP_DEBUG=${APP_DEBUG}
+      - APP_VERSION=${APP_VERSION}
       - APP_HOST=${APP_HOST}
       - APP_URL=${APP_URL}
       - FRONTEND_URL=${FRONTEND_URL}
@@ -343,6 +345,7 @@ services:
     environment:
       - NODE_ENV=${NODE_ENV}
       - NEXT_TELEMETRY_DISABLED=${NEXT_TELEMETRY_DISABLED}
+      - NEXT_PUBLIC_VERSION=${NEXT_PUBLIC_VERSION}
       - NEXT_PUBLIC_BACKEND_URL=${NEXT_PUBLIC_BACKEND_URL}
     networks:
       - internal

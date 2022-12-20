@@ -9,8 +9,8 @@ for line in str(env_content).splitlines():
     key, value = line.strip().split('=', 1)
     env_vars[key] = value
 
-# Uncommment to use `APP_HOST` from `env.development` file, it must be a actual IP
-#env_vars['APP_HOST'] = '192.168.0.161'
+# Comment to use `APP_HOST` value from `env.development` file, it must be a actual IP
+env_vars['APP_HOST'] = '192.168.0.161'
 
 
 docker_compose(
