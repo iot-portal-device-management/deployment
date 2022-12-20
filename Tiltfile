@@ -1,8 +1,21 @@
 version_settings(constraint='>=0.22.2')
 
+env_content = read_file('./.env.development')
+
+env_vars = {}
+for line in str(env_content).splitlines():
+    if line.startswith('#') or not line.strip():
+        continue
+    key, value = line.strip().split('=', 1)
+    env_vars[key] = value
+
+# Uncommment to use `APP_HOST` from `env.development` file, it must be a actual IP
+#env_vars['APP_HOST'] = '192.168.0.161'
+
+
 docker_compose(
     './compose/docker-compose.yml',
-    env_file='.env.development',
+    env_file='./.env.development',
     project_name='iotportaldevicemanagement',
 )
 
@@ -11,7 +24,7 @@ docker_compose(
 local_resource(
     'iotportaldevicemanagement-builder',
     'docker build -f build/Dockerfile.production -t iotportaldevicemanagement-builder \
-    --build-arg HOSTNAME=192.168.0.161 .',
+    --build-arg HOSTNAME={} .'.format(env_vars['APP_HOST']),
     deps=['./build'],
 )
 
