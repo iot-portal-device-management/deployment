@@ -1,10 +1,10 @@
 <h1 align="center">
   <a href="https://github.com/iot-portal-device-management/deployment">
-    Deployment Files
+    IoT Portal Device Management Deployment Files
   </a>
 </h1>
 
-IoT Portal Device Management Deployment files. This holds the deployment files for IoT Portal Device Management.
+This repository houses the deployment files for IoT Portal Device Management.
 
 ## 👏 Contributing
 
