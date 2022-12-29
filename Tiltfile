@@ -1,3 +1,8 @@
+#
+# Copyright (C) 2021-2022 Intel Corporation
+# SPDX-License-Identifier: MIT
+#
+
 version_settings(constraint='>=0.22.2')
 
 env_content = read_file('./.env.development')
