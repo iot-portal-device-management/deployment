@@ -16,7 +16,7 @@ ARG LOCAL_GID=65534
 
 RUN set -eux; \
     apt-get update; \
-    apt-get install -y \
+    apt-get install --no-install-recommends -y \
                   openssl; \
     rm -rf /var/lib/apt/lists/*; \
     # create certificates folder
@@ -46,7 +46,7 @@ RUN set -eux; \
         -key localhost.key \
         -subj "/C=US/ST=Oregon/L=Oregon/O=Intel/OU=Intel Corporation/CN=$HOSTNAME" \
         -reqexts SAN \
-        -config <(cat /etc/ssl/openssl.cnf <(printf "\n[SAN]\nsubjectAltName=DNS:$HOSTNAME,IP:$HOSTNAME"))  \
+        -config <(cat /etc/ssl/openssl.cnf <(printf "\n[SAN]\nsubjectAltName=DNS:%s,IP:%s" "$HOSTNAME" "$HOSTNAME")) \
         \
         -out localhost.csr; \
 # Verify the csr's content
@@ -76,7 +76,7 @@ RUN set -eux; \
         -key nginx.key \
         -subj "/C=US/ST=Oregon/L=Oregon/O=Intel/OU=Intel Corporation/CN=$HOSTNAME" \
         -reqexts SAN \
-        -config <(cat /etc/ssl/openssl.cnf <(printf "\n[SAN]\nsubjectAltName=DNS:$HOSTNAME,DNS:nginx,IP:$HOSTNAME"))  \
+        -config <(cat /etc/ssl/openssl.cnf <(printf "\n[SAN]\nsubjectAltName=DNS:%s,IP:%s" "$HOSTNAME" "$HOSTNAME")) \
         \
         -out nginx.csr; \
 # Generate the certificate using the mydomain csr and key along with the CA Root key
@@ -104,7 +104,7 @@ RUN set -eux; \
         -key postgres.key \
         -subj "/C=US/ST=Oregon/L=Oregon/O=Intel/OU=Intel Corporation/CN=$HOSTNAME" \
         -reqexts SAN \
-        -config <(cat /etc/ssl/openssl.cnf <(printf "\n[SAN]\nsubjectAltName=DNS:$HOSTNAME,DNS:postgres,IP:$HOSTNAME"))  \
+        -config <(cat /etc/ssl/openssl.cnf <(printf "\n[SAN]\nsubjectAltName=DNS:%s,IP:%s" "$HOSTNAME" "$HOSTNAME")) \
         \
         -out postgres.csr; \
 # Generate the certificate using the mydomain csr and key along with the CA Root key
@@ -132,7 +132,7 @@ RUN set -eux; \
         -key redis.key \
         -subj "/C=US/ST=Oregon/L=Oregon/O=Intel/OU=Intel Corporation/CN=$HOSTNAME" \
         -reqexts SAN \
-        -config <(cat /etc/ssl/openssl.cnf <(printf "\n[SAN]\nsubjectAltName=DNS:$HOSTNAME,DNS:redis,IP:$HOSTNAME"))  \
+        -config <(cat /etc/ssl/openssl.cnf <(printf "\n[SAN]\nsubjectAltName=DNS:%s,IP:%s" "$HOSTNAME" "$HOSTNAME")) \
         \
         -out redis.csr; \
 # Generate the certificate using the mydomain csr and key along with the CA Root key
@@ -160,7 +160,7 @@ RUN set -eux; \
         -key vernemq.key \
         -subj "/C=US/ST=Oregon/L=Oregon/O=Intel/OU=Intel Corporation/CN=$HOSTNAME" \
         -reqexts SAN \
-        -config <(cat /etc/ssl/openssl.cnf <(printf "\n[SAN]\nsubjectAltName=DNS:$HOSTNAME,DNS:vernemq,IP:$HOSTNAME"))  \
+        -config <(cat /etc/ssl/openssl.cnf <(printf "\n[SAN]\nsubjectAltName=DNS:%s,IP:%s" "$HOSTNAME" "$HOSTNAME")) \
         \
         -out vernemq.csr; \
 # Generate the certificate using the mydomain csr and key along with the CA Root key
